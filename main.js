@@ -1,73 +1,109 @@
-let boat = null;
-let motor = null;
-let tent = null;
-let steer = null;
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
 
-function createBoat(model, color) {
-  // Удаляем старые объекты
-  [boat, motor, tent, steer].forEach(obj => {
-    if (obj) scene.remove(obj);
-  });
-  boat = motor = tent = steer = null;
+let scene = new THREE.Scene();
+scene.background = new THREE.Color(0xaec6cf);
 
-  // Лодка
+let camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(3, 2, 4);
+
+let renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Controls
+let controls = new OrbitControls(camera, renderer.domElement);
+
+// Light
+scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1));
+let dirLight = new THREE.DirectionalLight(0xffffff, 1);
+dirLight.position.set(5, 10, 7);
+scene.add(dirLight);
+
+// Variables
+let boat, motorObj, tentObj, wheelObj;
+let material = new THREE.MeshStandardMaterial({ color: 'white' });
+
+// Functions
+function createBoat(model) {
+  if (boat) scene.remove(boat);
+
   let geometry;
-  if (model === "A") geometry = new THREE.BoxGeometry(2, 0.5, 1);
-  if (model === "B") geometry = new THREE.CylinderGeometry(0.5, 1, 2, 16);
-  if (model === "C") geometry = new THREE.ConeGeometry(1, 2, 16);
+  if (model === 'A') geometry = new THREE.BoxGeometry(2, 0.5, 1);
+  if (model === 'B') geometry = new THREE.SphereGeometry(0.8, 32, 16);
+  if (model === 'C') geometry = new THREE.ConeGeometry(0.8, 1.5, 16);
 
-  const material = new THREE.MeshStandardMaterial({ color });
   boat = new THREE.Mesh(geometry, material);
   scene.add(boat);
-
-  // Модули
-  addMotor(document.getElementById("motorType").value);
-  if (document.getElementById("tentModule").checked) addTent();
-  if (document.getElementById("rightSteer").checked) addSteer();
 }
 
-function addMotor(type) {
+function updateColor(color) {
+  material.color.set(color);
+}
+
+function updateMotor(type) {
+  if (motorObj) scene.remove(motorObj);
   if (!type) return;
-  const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-  const material = new THREE.MeshStandardMaterial({ color: type === "X" ? "gray" : type === "Y" ? "silver" : "black" });
-  motor = new THREE.Mesh(geometry, material);
-  motor.position.set(0, -0.25, -0.75);
-  scene.add(motor);
+
+  let geom = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+  let mat = new THREE.MeshStandardMaterial({ color: 'gray' });
+  motorObj = new THREE.Mesh(geom, mat);
+  motorObj.position.set(0, 0, -0.8);
+  scene.add(motorObj);
 }
 
-function addTent() {
-  const geometry = new THREE.ConeGeometry(1, 0.8, 8);
-  const material = new THREE.MeshStandardMaterial({ color: "red" });
-  tent = new THREE.Mesh(geometry, material);
-  tent.position.set(0, 0.65, 0);
-  scene.add(tent);
+function updateTent(enabled) {
+  if (tentObj) scene.remove(tentObj);
+  if (!enabled) return;
+
+  let geom = new THREE.BoxGeometry(1.5, 0.1, 0.8);
+  let mat = new THREE.MeshStandardMaterial({ color: 'lightgray' });
+  tentObj = new THREE.Mesh(geom, mat);
+  tentObj.position.set(0, 0.4, 0);
+  scene.add(tentObj);
 }
 
-function addSteer() {
-  const geometry = new THREE.TorusGeometry(0.2, 0.05, 8, 16);
-  const material = new THREE.MeshStandardMaterial({ color: "brown" });
-  steer = new THREE.Mesh(geometry, material);
-  steer.position.set(0.5, 0, 0.3);
-  steer.rotation.x = Math.PI / 2;
-  scene.add(steer);
+function updateWheel(enabled) {
+  if (wheelObj) scene.remove(wheelObj);
+  if (!enabled) return;
+
+  let geom = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+  let mat = new THREE.MeshStandardMaterial({ color: 'black' });
+  wheelObj = new THREE.Mesh(geom, mat);
+  wheelObj.position.set(0.8, 0, 0.4);
+  scene.add(wheelObj);
 }
 
-// Слушатели изменений
-["boatModel", "boatColor", "motorType", "tentModule", "rightSteer"].forEach(id => {
-  document.getElementById(id).addEventListener("change", () => {
-    const model = document.getElementById("boatModel").value;
-    const color = document.getElementById("boatColor").value;
-    createBoat(model, color);
-  });
+// UI events
+document.getElementById('model').addEventListener('change', e => createBoat(e.target.value));
+document.getElementById('color').addEventListener('change', e => updateColor(e.target.value));
+document.getElementById('motor').addEventListener('change', e => updateMotor(e.target.value));
+document.getElementById('tent').addEventListener('change', e => updateTent(e.target.checked));
+document.getElementById('wheel').addEventListener('change', e => updateWheel(e.target.checked));
+
+document.getElementById('send').addEventListener('click', () => {
+  let data = {
+    model: document.getElementById('model').value,
+    color: document.getElementById('color').value,
+    motor: document.getElementById('motor').value,
+    tent: document.getElementById('tent').checked,
+    wheel: document.getElementById('wheel').checked
+  };
+  alert("Выбрано:\n" + JSON.stringify(data, null, 2));
 });
 
-// Первичная отрисовка
-createBoat("A", "white");
+// Initial
+createBoat('A');
 
-// Анимация
+// Render loop
 function animate() {
   requestAnimationFrame(animate);
-  if (boat) boat.rotation.y += 0.01;
   renderer.render(scene, camera);
 }
 animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});

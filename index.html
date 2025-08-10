@@ -1,36 +1,46 @@
-<div class="controls">
-  <label>Модель:
-    <select id="boatModel">
-      <option value="A">Model A</option>
-      <option value="B">Model B</option>
-      <option value="C">Model C</option>
-    </select>
-  </label>
-
-  <label>Цвет:
-    <select id="boatColor">
-      <option value="white">Белый</option>
-      <option value="black">Чёрный</option>
-      <option value="blue">Синий</option>
-    </select>
-  </label>
-</div>
-
-<div class="controls">
-  <label>Мотор:
-    <select id="motorType">
-      <option value="">— Без мотора —</option>
-      <option value="X">Мотор X</option>
-      <option value="Y">Мотор Y</option>
-      <option value="Z">Мотор Z</option>
-    </select>
-  </label>
-
-  <label>
-    <input type="checkbox" id="tentModule" /> Тент
-  </label>
-
-  <label>
-    <input type="checkbox" id="rightSteer" /> Правый руль
-  </label>
-</div>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>3D Конфигуратор лодок</title>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: sans-serif; }
+    #ui {
+      position: absolute; top: 10px; left: 10px;
+      background: rgba(255,255,255,0.8); padding: 10px; border-radius: 6px;
+    }
+    label { display: block; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <label>Модель:
+      <select id="model">
+        <option value="A">Model A</option>
+        <option value="B">Model B</option>
+        <option value="C">Model C</option>
+      </select>
+    </label>
+    <label>Цвет:
+      <select id="color">
+        <option value="white">Белый</option>
+        <option value="black">Чёрный</option>
+        <option value="blue">Синий</option>
+      </select>
+    </label>
+    <label>Мотор:
+      <select id="motor">
+        <option value="">Без</option>
+        <option value="X">Мотор X</option>
+        <option value="Y">Мотор Y</option>
+        <option value="Z">Мотор Z</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="tent"> Тент</label>
+    <label><input type="checkbox" id="wheel"> Правый руль</label>
+    <button id="send">Отправить</button>
+  </div>
+  
+  <script type="module" src="main.js"></script>
+</body>
+</html>
