@@ -41,10 +41,11 @@
     <button id="send">Отправить</button>
   </div>
 
-  <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
-
+  <!-- Подключение Three.js и OrbitControls -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.min.js"></script>
+  
+  <script>
     let scene = new THREE.Scene();
     scene.background = new THREE.Color(0xaec6cf);
 
@@ -55,7 +56,7 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    let controls = new OrbitControls(camera, renderer.domElement);
+    let controls = new THREE.OrbitControls(camera, renderer.domElement);
 
     scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1));
     let dirLight = new THREE.DirectionalLight(0xffffff, 1);
