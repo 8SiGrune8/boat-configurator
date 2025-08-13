@@ -4,139 +4,174 @@
   <meta charset="UTF-8">
   <title>3D Конфигуратор лодок</title>
   <style>
-    body { margin: 0; overflow: hidden; font-family: sans-serif; }
-    #ui {
-      position: absolute; top: 10px; left: 10px;
-      background: rgba(255,255,255,0.8); padding: 10px; border-radius: 6px;
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
     }
-    label { display: block; margin-top: 5px; }
+    #ui {
+      width: 220px;
+      padding: 10px;
+      background: #f0f0f0;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+    #scene-container {
+      flex: 1;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    select, button {
+      width: 100%;
+      padding: 5px;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
   <div id="ui">
-    <label>Модель:
-      <select id="model">
-        <option value="A">Model A</option>
-        <option value="B">Model B</option>
-        <option value="C">Model C</option>
-      </select>
-    </label>
-    <label>Цвет:
-      <select id="color">
-        <option value="white">Белый</option>
-        <option value="black">Чёрный</option>
-        <option value="blue">Синий</option>
-      </select>
-    </label>
-    <label>Мотор:
-      <select id="motor">
-        <option value="">Без</option>
-        <option value="X">Мотор X</option>
-        <option value="Y">Мотор Y</option>
-        <option value="Z">Мотор Z</option>
-      </select>
-    </label>
-    <label><input type="checkbox" id="tent"> Тент</label>
-    <label><input type="checkbox" id="wheel"> Правый руль</label>
-    <button id="send">Отправить</button>
+    <label>Модель лодки:</label>
+    <select id="modelSelect">
+      <option value="cube">Model A (Куб)</option>
+      <option value="sphere">Model B (Сфера)</option>
+      <option value="cone">Model C (Конус)</option>
+    </select>
+
+    <label>Цвет:</label>
+    <select id="colorSelect">
+      <option value="white">Белый</option>
+      <option value="black">Чёрный</option>
+      <option value="blue">Синий</option>
+    </select>
+
+    <label>Мотор:</label>
+    <select id="motorSelect">
+      <option value="X">Мотор X</option>
+      <option value="Y">Мотор Y</option>
+      <option value="Z">Мотор Z</option>
+    </select>
+
+    <label>Дополнения:</label>
+    <input type="checkbox" id="tent"> Тент<br>
+    <input type="checkbox" id="wheel"> Правый руль
+
+    <button id="sendBtn">Отправить заявку</button>
   </div>
 
-  <!-- Подключение Three.js и OrbitControls -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.min.js"></script>
-  
-  <script>
-    let scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xaec6cf);
+  <div id="scene-container"></div>
 
-    let camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(3, 2, 4);
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
 
-    let renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+    // Сцена и камера
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xd0e0f0);
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(3, 3, 5);
 
-    let controls = new THREE.OrbitControls(camera, renderer.domElement);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth - 220, window.innerHeight);
+    document.getElementById('scene-container').appendChild(renderer.domElement);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1));
-    let dirLight = new THREE.DirectionalLight(0xffffff, 1);
-    dirLight.position.set(5, 10, 7);
-    scene.add(dirLight);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
 
-    let boat, motorObj, tentObj, wheelObj;
-    let material = new THREE.MeshStandardMaterial({ color: 'white' });
+    // Свет
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5, 5, 5);
+    scene.add(light, new THREE.AmbientLight(0xffffff, 0.5));
 
-    function createBoat(model) {
+    // Меш лодки
+    let boat;
+    function createBoat(model = 'cube', color = 'white') {
       if (boat) scene.remove(boat);
       let geometry;
-      if (model === 'A') geometry = new THREE.BoxGeometry(2, 0.5, 1);
-      if (model === 'B') geometry = new THREE.SphereGeometry(0.8, 32, 16);
-      if (model === 'C') geometry = new THREE.ConeGeometry(0.8, 1.5, 16);
+      if (model === 'cube') geometry = new THREE.BoxGeometry(2, 0.5, 1);
+      if (model === 'sphere') geometry = new THREE.SphereGeometry(0.8, 32, 16);
+      if (model === 'cone') geometry = new THREE.ConeGeometry(0.8, 2, 32);
+      const material = new THREE.MeshStandardMaterial({ color });
       boat = new THREE.Mesh(geometry, material);
       scene.add(boat);
     }
 
-    function updateColor(color) { material.color.set(color); }
+    createBoat();
 
-    function updateMotor(type) {
-      if (motorObj) scene.remove(motorObj);
-      if (!type) return;
-      let geom = new THREE.BoxGeometry(0.3, 0.3, 0.3);
-      let mat = new THREE.MeshStandardMaterial({ color: 'gray' });
-      motorObj = new THREE.Mesh(geom, mat);
-      motorObj.position.set(0, 0, -0.8);
-      scene.add(motorObj);
+    // Тент и руль
+    let tentMesh, wheelMesh;
+    function updateAddons() {
+      if (tentMesh) scene.remove(tentMesh);
+      if (wheelMesh) scene.remove(wheelMesh);
+
+      if (document.getElementById('tent').checked) {
+        tentMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(1.5, 0.2, 1),
+          new THREE.MeshStandardMaterial({ color: 'gray' })
+        );
+        tentMesh.position.y = 0.5;
+        scene.add(tentMesh);
+      }
+      if (document.getElementById('wheel').checked) {
+        wheelMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(0.2, 0.2, 0.2),
+          new THREE.MeshStandardMaterial({ color: 'red' })
+        );
+        wheelMesh.position.set(0.7, 0.2, 0.4);
+        scene.add(wheelMesh);
+      }
     }
 
-    function updateTent(enabled) {
-      if (tentObj) scene.remove(tentObj);
-      if (!enabled) return;
-      let geom = new THREE.BoxGeometry(1.5, 0.1, 0.8);
-      let mat = new THREE.MeshStandardMaterial({ color: 'lightgray' });
-      tentObj = new THREE.Mesh(geom, mat);
-      tentObj.position.set(0, 0.4, 0);
-      scene.add(tentObj);
-    }
-
-    function updateWheel(enabled) {
-      if (wheelObj) scene.remove(wheelObj);
-      if (!enabled) return;
-      let geom = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-      let mat = new THREE.MeshStandardMaterial({ color: 'black' });
-      wheelObj = new THREE.Mesh(geom, mat);
-      wheelObj.position.set(0.8, 0, 0.4);
-      scene.add(wheelObj);
-    }
-
-    document.getElementById('model').addEventListener('change', e => createBoat(e.target.value));
-    document.getElementById('color').addEventListener('change', e => updateColor(e.target.value));
-    document.getElementById('motor').addEventListener('change', e => updateMotor(e.target.value));
-    document.getElementById('tent').addEventListener('change', e => updateTent(e.target.checked));
-    document.getElementById('wheel').addEventListener('change', e => updateWheel(e.target.checked));
-
-    document.getElementById('send').addEventListener('click', () => {
-      let data = {
-        model: document.getElementById('model').value,
-        color: document.getElementById('color').value,
-        motor: document.getElementById('motor').value,
-        tent: document.getElementById('tent').checked,
-        wheel: document.getElementById('wheel').checked
-      };
-      alert("Выбрано:\n" + JSON.stringify(data, null, 2));
+    // UI события
+    document.getElementById('modelSelect').addEventListener('change', () => {
+      createBoat(
+        document.getElementById('modelSelect').value,
+        document.getElementById('colorSelect').value
+      );
+      updateAddons();
     });
 
-    createBoat('A');
+    document.getElementById('colorSelect').addEventListener('change', () => {
+      createBoat(
+        document.getElementById('modelSelect').value,
+        document.getElementById('colorSelect').value
+      );
+      updateAddons();
+    });
 
+    document.getElementById('tent').addEventListener('change', updateAddons);
+    document.getElementById('wheel').addEventListener('change', updateAddons);
+
+    document.getElementById('sendBtn').addEventListener('click', () => {
+      const model = document.getElementById('modelSelect').value;
+      const color = document.getElementById('colorSelect').value;
+      const motor = document.getElementById('motorSelect').value;
+      const tent = document.getElementById('tent').checked;
+      const wheel = document.getElementById('wheel').checked;
+      alert(`Вы выбрали: 
+      Модель: ${model}
+      Цвет: ${color}
+      Мотор: ${motor}
+      Тент: ${tent ? 'да' : 'нет'}
+      Правый руль: ${wheel ? 'да' : 'нет'}`);
+    });
+
+    // Анимация
     function animate() {
       requestAnimationFrame(animate);
+      controls.update();
       renderer.render(scene, camera);
     }
     animate();
 
+    // Масштаб при изменении окна
     window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.aspect = (window.innerWidth - 220) / window.innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(window.innerWidth - 220, window.innerHeight);
     });
   </script>
 </body>
