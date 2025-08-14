@@ -79,7 +79,7 @@
     renderer.setSize(window.innerWidth - 220, window.innerHeight);
     document.getElementById('scene-container').appendChild(renderer.domElement);
 
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
     // Свет
